@@ -3,6 +3,7 @@ import MainRoutes from "./Route/MainRoutes";
 import Nav from "./components/NavBar/Nav";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { ToastContainer } from "react-toastify";
 
 const App = () => {
   useEffect(() => {
@@ -17,6 +18,7 @@ const App = () => {
     <div className="relative">
       <Nav />
       <MainRoutes />
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 };

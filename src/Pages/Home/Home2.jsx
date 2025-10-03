@@ -45,20 +45,20 @@ const Home2 = () => {
 
   return (
     // Make the main container relative
-    <div className="w-full h-screen text-white relative">
+    <div className="w-full  text-white relative">
       {/* 1. Background Layer */}
       <div className="absolute top-0 left-0 w-full h-full z-0">
         <DNA />
       </div>
 
       {/* 2. Foreground Layer (with higher z-index) */}
-      <div className="absolute top-0 left-0 w-full h-full z-10 flex flex-col justify-center px-10">
+      <div className="absolute top-130 left-0 w-full h-full z-10 flex flex-col justify-center px-10">
         <h1 ref={h1} className="text-5xl font-bold mb-10">
           Space Biology Engine
         </h1>
         {/* Add a ref to the container of the paragraphs */}
         <div ref={content}>
-          <p className="max-w-[600px] mb-8"> {/* Adjusted margin-bottom */}
+          <p className="max-w-[500px] mb-8"> {/* Adjusted margin-bottom */}
             The Space Biology Knowledge Engine helps students, researchers, and
             scientists explore how life can survive beyond Earth. It uses NASA
             data on plants, microbes, animals, and humans tested in space and on

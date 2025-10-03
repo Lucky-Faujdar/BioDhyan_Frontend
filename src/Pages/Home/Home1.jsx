@@ -8,6 +8,7 @@ const Home1 = () => {
       <div
         data-aos="fade-left"
         className="
+        w-[100%] ml-90
           scale-100 sm:scale-105 md:scale-110
           translate-x-10 sm:translate-x-40 md:translate-x-60 lg:translate-x-80
           translate-y-[-100px] sm:translate-y-[-150px] md:translate-y-[-200px]
@@ -20,7 +21,7 @@ const Home1 = () => {
       <div
         className="
           absolute 
-          top-1/4 sm:top-1/3 md:top-1/2
+          top-0 sm:top-1/3 lg:top-50
           left-4 sm:left-8 md:left-12 lg:left-16
           flex flex-col items-start
           px-2 sm:px-4 md:px-0

@@ -18,8 +18,8 @@ const Upload = ({ user }) => {
       </div>
       <div className="relative w-screen h-screen left-0">
         {/* Background */}
-        <div className="w-full h-full absolute bottom-22 z-0 object-cover">
-          <img className="w-full" src={image} alt="" />
+        <div className="w-full h-full absolute bottom-22 z-0 object-cover ">
+          <img className="w-full " src={image} alt="" />
         </div>
         {/* fromtground */}
         <div className="flex items-center relative justify-center min-h-screen">
