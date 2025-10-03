@@ -10,7 +10,7 @@ const SearchBar = ({ addToHistory }) => {
   const BASE_URL =
     import.meta.env.MODE === "development"
       ? "http://localhost:5000"
-      : "https://nasa-project-6byr.onrender.com";
+      : "https://biodhyan-backend.onrender.com";
 
   const handleSearch = async (e) => {
     e.preventDefault();
