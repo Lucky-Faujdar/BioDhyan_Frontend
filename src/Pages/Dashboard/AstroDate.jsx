@@ -1,10 +1,9 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Rocket, CalendarCheck, Globe, Loader2, Search, Zap } from 'lucide-react';
+import { Rocket, CalendarCheck, Globe, Loader2, Search } from 'lucide-react';
 
 const AstroDate = () => {
     // State for user input (date)
     const [selectedDate, setSelectedDate] = useState(() => {
-        // Default to a recent date for better presentation
         const today = new Date();
         return today.toISOString().split('T')[0];
     });
@@ -17,101 +16,43 @@ const AstroDate = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // --- Gemini API Configuration ---
-    const apiKey = ""; // Canvas will provide this key at runtime
-    const model = 'gemini-2.5-flash-preview-05-20';
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-    /**
-     * Executes the Gemini API call to search for NASA history on a specific date.
-     * Implements exponential backoff for handling rate limits.
-     */
+    // --- Call your backend NASA route ---
     const fetchNasaHistory = useCallback(async (date) => {
         setIsLoading(true);
         setError(null);
         setResultText(null);
         setSources([]);
 
-        const formattedDate = new Date(date).toLocaleDateString('en-US', {
-            year: 'numeric', month: 'long', day: 'numeric'
-        });
-
-        // System instructions guide the model's persona and output style
-        const systemPrompt = "You are 'AstroDate', a knowledgeable, inspiring, and concise AI historian for NASA and space exploration. Your task is to provide a compelling, single-paragraph summary of a key NASA, space exploration, or astronomical event that happened on the user-specified date. If multiple events exist, choose the most significant or interesting one. Always use Google Search to ground your answer and provide citations.";
-        
-        // User query specifying the required information
-        const userQuery = `What significant NASA mission, space exploration event, or major astronomical discovery was made on the date: ${formattedDate}? Summarize the event, its significance, and the main entities involved.`;
-
-        const payload = {
-            contents: [{ parts: [{ text: userQuery }] }],
-            tools: [{ "google_search": {} }], // Enable Google Search grounding
-            systemInstruction: { parts: [{ text: systemPrompt }] },
-        };
-
-        const maxRetries = 5;
-        for (let attempt = 0; attempt < maxRetries; attempt++) {
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    if (response.status === 429 && attempt < maxRetries - 1) {
-                        // Rate limit error (429), wait and retry
-                        const delay = Math.pow(2, attempt) * 1000;
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        continue;
-                    }
-
-                    // --- UPDATED ERROR HANDLING ---
-                    let errorBody = null;
-                    try {
-                        errorBody = await response.json();
-                    } catch (e) {
-                        // Ignore JSON parsing errors if the response body is not JSON
-                    }
-
-                    // Extract a specific error message if available, otherwise use the status code
-                    const errorMessage = errorBody?.error?.message || `API request failed with status: ${response.status}`;
-                    throw new Error(errorMessage);
-                    // --- END UPDATED ERROR HANDLING ---
-                }
-
-                const result = await response.json();
-                const candidate = result.candidates?.[0];
-
-                if (candidate && candidate.content?.parts?.[0]?.text) {
-                    const text = candidate.content.parts[0].text;
-                    setResultText(text);
-
-                    // Extract grounding sources
-                    let extractedSources = [];
-                    const groundingMetadata = candidate.groundingMetadata;
-                    if (groundingMetadata && groundingMetadata.groundingAttributions) {
-                        extractedSources = groundingMetadata.groundingAttributions
-                            .map(attribution => ({
-                                uri: attribution.web?.uri,
-                                title: attribution.web?.title,
-                            }))
-                            .filter(source => source.uri && source.title);
-                    }
-                    setSources(extractedSources);
-                } else {
-                    setResultText("No significant information was returned by the AI for this date.");
-                }
-                break; // Success, exit retry loop
-
-            } catch (err) {
-                console.error("Gemini API Error:", err);
-                // Display the detailed error message extracted or the generic one
-                setError(`Failed to fetch history: ${err.message}`);
-                if (attempt === maxRetries - 1) break; // Last attempt failed
+        try {
+            // call your backend API (adjust URL if backend is on different port/domain)
+            const response = await fetch(`/api/discover?dob=${date}`);
+            if (!response.ok) {
+                throw new Error(`Failed with status: ${response.status}`);
             }
+            const data = await response.json();
+
+            if (data.apod) {
+                // Use APOD info from backend
+                const text = `${data.apod.title} — ${data.apod.explanation}`;
+                setResultText(text);
+
+                // Add source (NASA APOD link)
+                setSources([
+                    {
+                        uri: data.apod.url,
+                        title: data.apod.title || "NASA APOD",
+                    }
+                ]);
+            } else {
+                setResultText("No APOD data available for this date.");
+            }
+        } catch (err) {
+            console.error("Backend API Error:", err);
+            setError(`Failed to fetch NASA data: ${err.message}`);
         }
+
         setIsLoading(false);
-    }, [apiUrl]);
+    }, []);
 
     // Handle button click
     const handleSearch = () => {
@@ -198,13 +139,16 @@ const AstroDate = () => {
                         <h2 className="text-3xl font-extrabold text-cyan-400 mb-4 flex items-center space-x-2 border-b border-gray-700 pb-2">
                             <CalendarCheck className="w-6 h-6" />
                             <span>Discovery for {formattedResultDate}</span>
-                        </h2 >
+                        </h2>
 
-                        <p className="text-lg text-gray-200 leading-relaxed mb-6">
-                            {resultText}
-                        </p>
+                        {/* Scrollable content */}
+                        <div className="max-h-64 overflow-y-auto pr-3">
+                            <p className="text-lg text-gray-200 leading-relaxed">
+                                {resultText}
+                            </p>
+                        </div>
 
-                        {/* Citations / Grounding Sources */}
+                        {/* Citations / Sources */}
                         {sources.length > 0 && (
                             <div className="mt-6 pt-4 border-t border-gray-700">
                                 <h3 className="text-sm font-semibold text-gray-400 uppercase mb-3">
